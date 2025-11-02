@@ -19,3 +19,7 @@ obj/
 /CPR.API/obj/project.nuget.cache
 /CPR.API/CPR.API.csproj.user
 /CPR.API/CPR.API.csproj
+/CPR.API/Migrations
+/CPR.API/bin/Debug/net9.0/CPR.API.runtimeconfig.json
+/CPR.API/obj/CPR.API.csproj.nuget.g.props
+/CPR.API/obj/CPR.API.csproj.nuget.g.targets

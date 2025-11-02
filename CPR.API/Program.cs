@@ -1,5 +1,7 @@
+using CPR.API.Data;
 using CPR.API.Services;
 using CPR.API.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
 namespace CPR.API
@@ -11,6 +13,11 @@ namespace CPR.API
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer(); // Required for Swagger to discover API endpoints
+            IConfiguration Configuration = new ConfigurationBuilder()
+                           .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                           .AddUserSecrets<Program>()
+                           .Build();
+            builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc(
@@ -44,10 +51,7 @@ namespace CPR.API
                 c.AddSecurityRequirement(securityRequirement);
                 c.CustomSchemaIds(x => x.FullName);
             });
-            IConfiguration Configuration = new ConfigurationBuilder()
-                           .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                           .AddUserSecrets<Program>()
-                           .Build();
+            
             builder.Services.AddSingleton(Configuration);
             builder.Services.AddTransient<IAstuteService, AstuteService>(); 
             builder.Services.AddOpenApi();
