@@ -1,4 +1,6 @@
-﻿namespace CPR.API.Data.Interfaces
+﻿using CPR.API.Models;
+
+namespace CPR.API.Data.Interfaces
 {
     /// <summary>
     /// Unit of work is wrap db calls into 1
@@ -15,6 +17,6 @@
         /// Completes the trasaction
         /// </summary>
         /// <returns></returns>
-        Task<int> CompleteAsync();
+        Task<Result> CompleteAsync();
     }
 }

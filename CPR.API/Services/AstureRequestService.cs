@@ -4,7 +4,7 @@ using CPR.API.Services.Interfaces;
 
 namespace CPR.API.Services
 {
-    public class ClientService(IUnitOfWork unitOfWork) : BaseService<ClientInfo>(unitOfWork), IClientService
+    public class AstureRequestService(IUnitOfWork unitOfWork) : BaseService<AstuteRequest>(unitOfWork), IAstureRequestService
     {
     }
 }

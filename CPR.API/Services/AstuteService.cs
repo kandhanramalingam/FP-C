@@ -1,6 +1,7 @@
 ﻿using AstuteServiceReference;
 using CPR.API.Common;
 using CPR.API.Models;
+using CPR.API.Models.DataEntities;
 using CPR.API.Services.Interfaces;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
@@ -10,14 +11,18 @@ namespace CPR.API.Services
     public class AstuteService : IAstuteService
     {
         private readonly IConfiguration _configuration;
+        private readonly IAstureRequestService _astureRequestService;
+        private readonly IClientService _clientService;
         private readonly string _username;
         private readonly string _password;
         private readonly string _userAgent;
         private readonly AstuteServiceV3Client _client;
 
-        public AstuteService(IConfiguration configuration)
+        public AstuteService(IConfiguration configuration, IAstureRequestService astureRequestService, IClientService clientService)
         {
             _configuration = configuration;
+            _astureRequestService = astureRequestService;
+            _clientService = clientService;
             var astuteSettings = _configuration.GetSection("Astute");
             _username = astuteSettings!["Username"];
             _password = astuteSettings!["Password"];
@@ -36,6 +41,26 @@ namespace CPR.API.Services
             p.Headers.Add(System.Net.HttpRequestHeader.UserAgent, _userAgent);
             OperationContext.Current.OutgoingMessageProperties.Add(HttpRequestMessageProperty.Name, p);
             var result = await _client.PerformCcpRequestAsync(item, msgId, null);
+            // Get client
+            var clients = await _clientService.FindAsync(x => x.IdNumber == portfolioPayload.IdNumber);
+            ClientInfo client = null;
+            if (clients == null || clients.Count() == 0) 
+            {
+                client = portfolioPayload.ToClient();
+                await _clientService.AddAsync(client);
+                clients = await _clientService.FindAsync(x => x.IdNumber == portfolioPayload.IdNumber);
+            }
+            client = clients.FirstOrDefault();
+            string message = result?.Result?.CompletionCode.ToString();
+
+            AstuteRequest request = new()
+            {
+                ClientInfoId = client.Id,
+                MessageId = msgId,
+                Result = true,
+                Message = !string.IsNullOrEmpty(message) ? message : "Error Result NULL."
+            };
+            await _astureRequestService.AddAsync(request);
             await GetHeaders(msgId);
             return result;
         }
@@ -57,6 +82,7 @@ namespace CPR.API.Services
             p.Headers.Add(System.Net.HttpRequestHeader.UserAgent, _userAgent);
             OperationContext.Current.OutgoingMessageProperties.Add(HttpRequestMessageProperty.Name, p);
             var result = await _client.GetProductSetAsync(sectorCode);
+            
             return result.Data;
         }
 

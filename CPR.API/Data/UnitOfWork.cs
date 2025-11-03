@@ -1,4 +1,7 @@
 ﻿using CPR.API.Data.Interfaces;
+using CPR.API.Models;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace CPR.API.Data
 {
@@ -20,7 +23,26 @@ namespace CPR.API.Data
             return repoInstance;
         }
 
-        public async Task<int> CompleteAsync() => await _context.SaveChangesAsync();
+        public async Task<Result> CompleteAsync()
+        {
+            try
+            {
+                var changes = await _context.SaveChangesAsync();
+                return changes > 0 ? Result.Ok("Changes saved successfully.") : Result.Fail("No changes were made to the database.");
+            }
+            catch (DbUpdateException ex)
+            {
+                return Result.Fail($"Database update failed. See inner exception for details.{ex.Message}");
+            }
+            catch (ValidationException ex)
+            {
+                return Result.Fail($"Database update failed. See inner exception for details.{ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return Result.Fail($"Database update failed. See inner exception for details.{ex.Message}");
+            }
+        }
 
         public void Dispose() => _context.Dispose();
     }

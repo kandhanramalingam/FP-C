@@ -7,6 +7,7 @@ namespace CPR.API.Data
     {
         public DbSet<ClientInfo> Clients { get; set; }
         public DbSet<PropertyInfo> Properties { get; set; }
+        public DbSet<AstuteRequest> AstuteRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -14,6 +15,11 @@ namespace CPR.API.Data
                 .HasMany(p => p.Properties)
                 .WithOne(c => c.ClientInfo)
                 .HasForeignKey(c => c.ClientInfoId);
+            modelBuilder.Entity<ClientInfo>()
+                .HasMany(a => a.AstuteRequests)
+                .WithOne(c => c.ClientInfo)
+                .HasForeignKey(c => c.ClientInfoId);
+            
             base.OnModelCreating(modelBuilder);
         }
 

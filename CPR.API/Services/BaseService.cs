@@ -12,6 +12,7 @@ namespace CPR.API.Services
         public async virtual Task AddAsync(T entity)
         {
             await Repository.AddAsync(entity);
+            await UnitOfWork.CompleteAsync();
         }
 
         public async virtual Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, int page = 0, int size = 20)
@@ -27,11 +28,13 @@ namespace CPR.API.Services
         public async virtual Task RemoveAsync(T entity)
         {
             await Task.Run(() => Repository.Remove(entity));
+            await UnitOfWork.CompleteAsync();
         }
 
         public async Task UpdateAsync(T entity)
         {
             await Task.Run(() => Repository.Update(entity));
+            await UnitOfWork.CompleteAsync();
         }
     }
 }

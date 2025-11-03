@@ -60,6 +60,7 @@ namespace CPR.API
             builder.Services.AddTransient<ILightstoneService, LightstoneService>();
             builder.Services.AddTransient<IClientService, ClientService>();
             builder.Services.AddTransient<IPropertyService, PropertyService>();
+            builder.Services.AddTransient<IAstureRequestService, AstureRequestService>();
             builder.Services.AddOpenApi();
             var app = builder.Build();
             if (app.Environment.IsDevelopment())

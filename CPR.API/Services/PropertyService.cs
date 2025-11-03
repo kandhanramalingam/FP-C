@@ -4,10 +4,7 @@ using CPR.API.Services.Interfaces;
 
 namespace CPR.API.Services
 {
-    public class PropertyService : BaseService<PropertyInfo>, IPropertyService
+    public class PropertyService(IUnitOfWork unitOfWork) : BaseService<PropertyInfo>(unitOfWork), IPropertyService
     {
-        public PropertyService(IUnitOfWork unitOfWork) : base(unitOfWork)
-        {
-        }
     }
 }
