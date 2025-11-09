@@ -8,9 +8,9 @@
         public DateTime DOB { get; set; }
         public string PhoneNumber { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public ICollection<PropertyInfo> Properties { get; set; }   
-        public ICollection<AstuteRequest> AstuteRequests { get; set; }
+        public ICollection<PropertyInfo> Properties { get; set; }
         public ICollection<VehicleInfo> Vehicles { get; set; }
         public ICollection<PolicyInfo> Policies { get; set; }
+        public ICollection<BrokerRequest> BrokerRequests { get; set; }
     }
 }

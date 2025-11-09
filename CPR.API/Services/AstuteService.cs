@@ -61,7 +61,6 @@ namespace CPR.API.Services
             #region AstuteRequest
             AstuteRequest request = new()
             {
-                ClientInfoId = client.Id,
                 MessageId = msgId,
                 Result = true,
                 Message = !string.IsNullOrEmpty(message) ? message : "Error Result NULL."
@@ -71,6 +70,7 @@ namespace CPR.API.Services
             
             return result;
         }
+
 
         public async Task<ProductSectorSet> GetProductSector()
         {

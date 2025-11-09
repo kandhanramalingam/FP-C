@@ -10,15 +10,13 @@ namespace CPR.API.Data
         public DbSet<VehicleInfo> Vehicles { get; set; }
         public DbSet<PolicyInfo> Policies { get; set; }
         public DbSet<AstuteRequest> AstuteRequests { get; set; }
+        public DbSet<Broker> Broker { get; set; }
+        public DbSet<BrokerRequest> BrokerRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ClientInfo>()
                 .HasMany(p => p.Properties)
-                .WithOne(c => c.ClientInfo)
-                .HasForeignKey(c => c.ClientInfoId);
-            modelBuilder.Entity<ClientInfo>()
-                .HasMany(a => a.AstuteRequests)
                 .WithOne(c => c.ClientInfo)
                 .HasForeignKey(c => c.ClientInfoId);
             modelBuilder.Entity<ClientInfo>()
@@ -33,6 +31,20 @@ namespace CPR.API.Data
                 .HasMany(v => v.Vehicles)
                 .WithOne(c => c.ClientInfo)
                 .HasForeignKey(c => c.ClientInfoId);
+            modelBuilder.Entity<ClientInfo>()
+                .HasMany(b => b.BrokerRequests)
+                .WithOne(c => c.ClientInfo)
+                .HasForeignKey(c => c.ClientInfoId);
+            modelBuilder.Entity<Broker>()
+                .HasMany(b => b.BrokerRequests)
+                .WithOne(b => b.Broker)
+                .HasForeignKey(b => b.BrokerId);
+            modelBuilder.Entity<BrokerRequest>()
+                .HasMany(a => a.AstuteRequests)
+                .WithOne(b => b.BrokerRequest)
+                .HasForeignKey(b => b.BrokerRequestId);
+
+                
 
             base.OnModelCreating(modelBuilder);
         }
