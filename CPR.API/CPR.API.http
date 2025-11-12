@@ -1,0 +1,6 @@
+@CPR.API_HostAddress = http://localhost:5191
+
+GET {{CPR.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

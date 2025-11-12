@@ -1,0 +1,6 @@
+@FP_C.API_HostAddress = http://localhost:5166
+
+GET {{FP_C.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
