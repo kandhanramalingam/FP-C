@@ -1,9 +1,9 @@
-﻿using CPR.API.Services.Interfaces;
+﻿using FP_C.API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace CPR.API.Common
+namespace FP_C.API.Common
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public class ApiKeyAuthAttribute : Attribute, IAsyncActionFilter

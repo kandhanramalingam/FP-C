@@ -1,12 +1,10 @@
-using CPR.API.Common;
-using CPR.API.Data;
-using CPR.API.Data.Interfaces;
-using CPR.API.Services;
-using CPR.API.Services.Interfaces;
+
+using FP_C.API.Common;
+using FP_C.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
-namespace CPR.API
+namespace FP_C.API
 {
     public class Program
     {
@@ -53,7 +51,7 @@ namespace CPR.API
                 c.AddSecurityRequirement(securityRequirement);
                 c.CustomSchemaIds(x => x.FullName);
             });
-            
+
             builder.Services.AddSingleton(Configuration);
             builder.Services.AddMyDependencies();
             builder.Services.AddOpenApi();

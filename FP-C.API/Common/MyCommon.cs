@@ -1,7 +1,7 @@
 ﻿using AstuteServiceReference;
-using CPR.API.Models;
+using FP_C.API.Models;
 
-namespace CPR.API.Common
+namespace FP_C.API.Common
 {
     public class MyCommon
     {

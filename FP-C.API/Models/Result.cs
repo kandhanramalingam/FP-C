@@ -1,4 +1,4 @@
-﻿namespace CPR.API.Models
+﻿namespace FP_C.API.Models
 {
     public class Result<T>
     {

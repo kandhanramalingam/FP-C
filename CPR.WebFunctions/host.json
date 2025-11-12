@@ -1,8 +1,12 @@
 {
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
+  "version": "2.0",
+  "logging": {
+    "applicationInsights": {
+      "samplingSettings": {
+        "isEnabled": true,
+        "excludedTypes": "Request"
+      },
+      "enableLiveMetricsFilters": true
     }
   },
   "ConnectionStrings": {
@@ -12,10 +16,5 @@
     "Username": "Patchala",
     "Password": "Astute1234$",
     "UserAgent": "84FB23D7-8B98-4DAD-A2E2-E7F0895000EC"
-  },
-  "Lightstone": {
-    "PrimaryKey": "31f7f278efc041ba93ca3633da1da8af",
-    "SecondaryKey": "e5eb764a590d49fa8b7b6221bc815dd4"
-  },
-  "AllowedHosts": "*"
+  }
 }
