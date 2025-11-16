@@ -6,5 +6,6 @@ namespace FP_C.API.Services
 {
     public class PolicyService(IUnitOfWork unitOfWork) : BaseService<PolicyInfo>(unitOfWork), IPolicyService
     {
+
     }
 }

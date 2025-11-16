@@ -2,7 +2,9 @@
 {
     public class PolicyInfo : BaseEntity
     {
-        public string PolicyNumber { get; set; }
+        public string PolicyNumber { get; set; } = string.Empty;
+        public string ProviderCode { get; set; } = string.Empty;
+        public string Value { get; set; } = string.Empty;
         public int ClientInfoId { get; set; }
         public ClientInfo ClientInfo { get; set; }
     }

@@ -1,5 +1,6 @@
 ﻿using AstuteServiceReference;
 using FP_C.API.Common;
+using FP_C.API.Data.Interfaces;
 using FP_C.API.Models;
 using FP_C.API.Models.DataEntities;
 using FP_C.API.Services.Interfaces;
@@ -13,26 +14,29 @@ namespace FP_C.API.Services
     public class AstuteService : IAstuteService
     {
         private readonly IConfiguration _configuration;
-        private readonly IAstureRequestService _astureRequestService;
-        private readonly IClientService _clientService;
-        private readonly IBrokerRequestService _brokerRequestService;
-        IBrokerService _brokerService;
+        private readonly IRepository<ClientInfo> _cService;
+        private readonly IRepository<BrokerRequest> _brService;
+        private readonly IRepository<PolicyInfo> _pService;
+        private readonly IRepository<Broker> _bService;
         private readonly string _username;
         private readonly string _password;
         private readonly string _defaultUserAgent;
         private readonly AstuteServiceV3Client _client;
+        private readonly IServiceProvider _serviceProvider;
 
         public AstuteService(IConfiguration configuration
-            , IAstureRequestService astureRequestService
-            , IClientService clientService
-            , IBrokerService brokerService
-            , IBrokerRequestService brokerRequestService)
+            , IRepository<ClientInfo> cService
+            , IRepository<Broker> bService
+            , IRepository<BrokerRequest> brService
+            , IRepository<PolicyInfo> pService
+            , IServiceProvider serviceProvider)
         {
             _configuration = configuration;
-            _astureRequestService = astureRequestService;
-            _clientService = clientService;
-            _brokerService = brokerService;
-            _brokerRequestService = brokerRequestService;
+            _cService = cService;
+            _bService = bService;
+            _brService = brService;
+            _pService = pService;
+            _serviceProvider = serviceProvider;
             var astuteSettings = _configuration.GetSection("Astute");
             _username = astuteSettings!["Username"];
             _password = astuteSettings!["Password"];
@@ -52,22 +56,23 @@ namespace FP_C.API.Services
             {
                 return Result<object>.Fail("Key cant be empty.");
             }
-            var brokers = await _brokerService.FindAsync(x => x.ApiKey == key);
-            if(brokers == null || !brokers.Any())
+            var brokers = _bService.Find(x => x.ApiKey == key);
+            if (brokers == null || !brokers.Any())
             {
-                 return Result<object>.Fail("Invalid API Key.");
+                return Result<object>.Fail("Invalid API Key.");
             }
             var broker = brokers.FirstOrDefault();
             #endregion GetBroker
 
             #region CreateGetClient
-            var clients = await _clientService.FindAsync(x => x.IdNumber == portfolioPayload.IdNumber);
+            var clients = _cService.Find(x => x.IdNumber == portfolioPayload.IdNumber);
             ClientInfo client = null;
             if (clients == null || !clients.Any())
             {
                 client = portfolioPayload.ToClient();
-                await _clientService.AddAsync(client);
-                clients = await _clientService.FindAsync(x => x.IdNumber == portfolioPayload.IdNumber);
+                await _cService.AddAsync(client);
+                await _cService.SaveChanges();
+                clients = _cService.Find(x => x.IdNumber == portfolioPayload.IdNumber);
             }
             client = clients.FirstOrDefault();
             #endregion CreateGetClient
@@ -82,13 +87,14 @@ namespace FP_C.API.Services
             #endregion CCPRequest
 
             #region CheckForPrevRequests
-            var requests = _brokerRequestService.FindAsync(x => x.BrokerId == broker.Id && x.ClientInfoId == client.Id && !x.IsConcluded);
-            if(requests != null && requests.Result.Any())
+            var requests = _brService.Find(x => x.BrokerId == broker.Id && x.ClientInfoId == client.Id && !x.IsConcluded);
+            if (requests != null && requests.Any())
             {
-                foreach(var req in requests.Result)
+                foreach (var req in requests)
                 {
                     req.IsConcluded = true;
-                    await _brokerRequestService.UpdateAsync(req);
+                    _brService.Update(req);
+                    await _brService.SaveChanges();
                 }
             }
             #endregion CheckForPrevRequests
@@ -102,7 +108,8 @@ namespace FP_C.API.Services
                 Request = JsonConvert.SerializeObject(item),
                 MessageId = msgId
             };
-            await _brokerRequestService.AddAsync(brokerRequest);
+            await _brService.AddAsync(brokerRequest);
+            await _brService.SaveChanges();
             #endregion CreateBrokerRequest
 
             return Result<object>.Ok(result);
@@ -115,7 +122,7 @@ namespace FP_C.API.Services
             {
                 return Result<ProductSectorSet>.Fail("Key cant be empty.");
             }
-            var brokers = await _brokerService.FindAsync(x => x.ApiKey == key);
+            var brokers = _bService.Find(x => x.ApiKey == key);
             if (brokers == null || !brokers.Any())
             {
                 return Result<ProductSectorSet>.Fail("Invalid API Key.");
@@ -137,7 +144,7 @@ namespace FP_C.API.Services
             {
                 return Result<ProductSet>.Fail("Key cant be empty.");
             }
-            var brokers = await _brokerService.FindAsync(x => x.ApiKey == key);
+            var brokers = _bService.Find(x => x.ApiKey == key);
             if (brokers == null || !brokers.Any())
             {
                 return Result<ProductSet>.Fail("Invalid API Key.");
@@ -153,17 +160,17 @@ namespace FP_C.API.Services
             return Result<ProductSet>.Ok(result.Data);
         }
 
-        public async Task<FP_C.API.Models.Result> RetrievePortfolios(string key, Guid msgId)
+        public async Task<Result<MessageContent>> RetrievePortfolios(string key, Guid msgId)
         {
             #region GetBroker
             if (string.IsNullOrEmpty(key))
             {
-                return FP_C.API.Models.Result.Fail("Key cant be empty.");
+                return Result<MessageContent>.Fail("Key cant be empty.");
             }
-            var brokers = await _brokerService.FindAsync(x => x.ApiKey == key);
+            var brokers = _bService.Find(x => x.ApiKey == key);
             if (brokers == null || !brokers.Any())
             {
-                return FP_C.API.Models.Result.Fail("Invalid API Key.");
+                return Result<MessageContent>.Fail("Invalid API Key.");
             }
             var broker = brokers.FirstOrDefault();
             #endregion GetBroker
@@ -171,15 +178,44 @@ namespace FP_C.API.Services
             HttpRequestMessageProperty p = new();
             p.Headers.Add(System.Net.HttpRequestHeader.UserAgent, broker.Code);
             OperationContext.Current.OutgoingMessageProperties.Add(HttpRequestMessageProperty.Name, p);
-            var result = await _client.GetMessageHeaderAsync(msgId);
-            return FP_C.API.Models.Result.Ok();
+            var result2 = await _client.GetMessageContentAsync(msgId);
+            return Result<MessageContent>.Ok(result2.Data);
+
         }
 
         public async Task RunRetrieval()
         {
+            var openRequests = _brService.Find(x => !x.IsConcluded).ToList();
+            foreach (var req in openRequests)
+            {
+                // Call RetrievePortfolios
+                var broker = _bService.Find(x => x.Id == req.BrokerId).FirstOrDefault();
+                var retrievalResult = await RetrievePortfolios(broker.ApiKey, req.MessageId);
+                if (retrievalResult.IsSuccess)
+                {
+                    if (retrievalResult.Value.MessageHeader.TimestampCompleted != null)
+                    {
+                        req.IsConcluded = true;
+                        _brService.Update(req);
+                        foreach (var item in retrievalResult.Value.MessageBody)
+                        {
+                            PolicyInfo policy = new()
+                            {
+                                ClientInfoId = req.ClientInfoId,
+                                ProviderCode = item.ProviderCode,
+                                Value = item.Value
+                            };
+                            await _pService.AddAsync(policy);
+                        }
+                         await _brService.SaveChanges();
+                        await _pService.SaveChanges();
+                    }
+                }
+            }
             // Get open requests
             // Retrieves data
             // Stores data
+
         }
     }
 }
