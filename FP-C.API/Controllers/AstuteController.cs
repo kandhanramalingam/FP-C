@@ -44,5 +44,12 @@ namespace FP_C.API.Controllers
             }
             return Result<object>.Fail("Unauthorized");
         }
+
+        [HttpPost("RunRetrieval")]
+        public async Task<Models.Result> RunRetrieval()
+        {
+            await _AstuteService.RunRetrieval();
+            return Models.Result.Ok();
+        }
     }
 }

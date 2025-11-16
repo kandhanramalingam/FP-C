@@ -57,5 +57,10 @@ namespace FP_C.API.Data.Interfaces
         /// the data store.</remarks>
         /// <param name="entity">The entity to update. Must not be <see langword="null"/>.</param>
         void Update(T entity);
+        /// <summary>
+        /// Saves changes to db
+        /// </summary>
+        /// <returns></returns>
+        Task<int> SaveChanges();
     }
 }
