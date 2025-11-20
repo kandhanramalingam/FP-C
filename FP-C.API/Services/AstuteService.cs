@@ -82,6 +82,7 @@ namespace FP_C.API.Services
             HttpRequestMessageProperty p = new();
             p.Headers.Add(System.Net.HttpRequestHeader.UserAgent, broker.Code);
             OperationContext.Current.OutgoingMessageProperties.Add(HttpRequestMessageProperty.Name, p);
+            // Change to intermediaterequest
             var result = await _client.PerformCcpRequestAsync(item, msgId, null);
             string message = result?.Result?.CompletionCode.ToString();
             #endregion CCPRequest
@@ -111,6 +112,10 @@ namespace FP_C.API.Services
             await _brService.AddAsync(brokerRequest);
             await _brService.SaveChanges();
             #endregion CreateBrokerRequest
+
+            // Retieve Property Data
+            // Retrieve Vehicle Data 
+
 
             return Result<object>.Ok(result);
         }
@@ -186,10 +191,14 @@ namespace FP_C.API.Services
         public async Task RunRetrieval()
         {
             var openRequests = _brService.Find(x => !x.IsConcluded).ToList();
+            List<PolicyInfo> clientPolicies = new();
+            ClientInfo client = null;
+            Broker broker = null;
+            PolicyInfo policy = null;
+
             foreach (var req in openRequests)
             {
-                // Call RetrievePortfolios
-                var broker = _bService.Find(x => x.Id == req.BrokerId).FirstOrDefault();
+                broker = _bService.Find(x => x.Id == req.BrokerId).FirstOrDefault();
                 var retrievalResult = await RetrievePortfolios(broker.ApiKey, req.MessageId);
                 if (retrievalResult.IsSuccess)
                 {
@@ -197,24 +206,27 @@ namespace FP_C.API.Services
                     {
                         req.IsConcluded = true;
                         _brService.Update(req);
+                        client = _cService.Find(x => x.Id == req.ClientInfoId).FirstOrDefault();
+                        clientPolicies = _pService.Find(x => x.ClientInfoId == req.ClientInfoId).ToList();
                         foreach (var item in retrievalResult.Value.MessageBody)
                         {
-                            PolicyInfo policy = new()
+                            if(!clientPolicies.Any(x => x.Name == item.ProviderCode))
                             {
-                                ClientInfoId = req.ClientInfoId,
-                                ProviderCode = item.ProviderCode,
-                                Value = item.Value
-                            };
-                            await _pService.AddAsync(policy);
+                                policy = new()
+                                {
+                                    ClientInfoId = req.ClientInfoId,
+                                    Name = item.ProviderCode,
+                                    Value = item.Value
+                                };
+                                await _pService.AddAsync(policy);
+                            }
+                            
                         }
-                         await _brService.SaveChanges();
+                        await _brService.SaveChanges();
                         await _pService.SaveChanges();
                     }
                 }
             }
-            // Get open requests
-            // Retrieves data
-            // Stores data
 
         }
     }
