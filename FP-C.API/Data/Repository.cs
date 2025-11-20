@@ -47,5 +47,10 @@ namespace FP_C.API.Data
         {
             _dbSet.Update(entity);
         }
+
+        public async Task<int> SaveChanges()
+        {
+            return await _context.SaveChangesAsync();
+        }
     }
 }

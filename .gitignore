@@ -22,3 +22,4 @@ obj/
 /CPR.API/bin/Debug/net9.0/CPR.API.runtimeconfig.json
 /CPR.API/obj/CPR.API.csproj.nuget.g.props
 /CPR.API/obj/CPR.API.csproj.nuget.g.targets
+/FP-C.API/Migrations

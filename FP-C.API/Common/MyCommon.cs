@@ -9,7 +9,8 @@ namespace FP_C.API.Common
         {
             return
             [
-                new ApiKeyModel("dev", "1779d06f-6713-47ad-8ab7-c5900f729f58")
+                new ApiKeyModel("dev", "1779d06f-6713-47ad-8ab7-c5900f729f58"),
+                new ApiKeyModel("dev", "84FB23D7-8B98-4DAD-A2E2-E7F0895000EC")
             ];
         }
 

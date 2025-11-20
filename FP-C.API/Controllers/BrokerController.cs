@@ -1,21 +1,19 @@
 ﻿using FP_C.API.Common;
+using FP_C.API.Data.Interfaces;
 using FP_C.API.Models;
 using FP_C.API.Models.DataEntities;
-using FP_C.API.Services;
-using FP_C.API.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore;
 
 namespace FP_C.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [ApiKeyAuth]
-    public class BrokerController(IBrokerService brokerService, IBrokerRequestService brokerRequestService) : ControllerBase
+    public class BrokerController(IRepository<BrokerRequest> brService, IRepository<Broker> bService) : ControllerBase
     {
-        private readonly IBrokerService _brokerService = brokerService;
-        private readonly IBrokerRequestService _brokerRequestService = brokerRequestService;
+        private readonly IRepository<Broker> _bService = bService;
+        private readonly IRepository<BrokerRequest> _brService = brService;
         private const string key = "api_key";
 
         [HttpPost("AddBroker")]
@@ -23,15 +21,16 @@ namespace FP_C.API.Controllers
         {
             try
             {
-                var brokers = await _brokerService.FindAsync(b => b.Code == payload.Code);
+                var brokers = _bService.Find(b => b.Code == payload.Code);
                 if(brokers != null && brokers.Any())
                 {
                     return Result<Broker>.Ok(brokers.FirstOrDefault(), "Broker already exists.");
                 }
 
                 var obj = payload.ToBroker();
-                await _brokerService.AddAsync(obj);
-                if(brokers == null || !brokers.Any())
+                await _bService.AddAsync(obj);
+                await _bService.SaveChanges();
+                if (brokers == null || !brokers.Any())
                 {
                     return Result<Broker>.Fail("Broker not found after addition.");
                 }
@@ -48,8 +47,9 @@ namespace FP_C.API.Controllers
         {
             try
             {
-                var brokers = await _brokerService.GetAllAsync();
-                if(brokers == null || !brokers.Any())
+                
+                var brokers = _bService.GetAll();
+                if (brokers == null || !brokers.Any())
                 {
                     return Result<IEnumerable<Broker>>.Fail("No brokers found.");
                 }
@@ -73,14 +73,14 @@ namespace FP_C.API.Controllers
                     {
                         return Result<IEnumerable<BrokerRequest>>.Fail("API Key is required.");
                     }
-                    var brokers = await _brokerService.FindAsync(x => x.ApiKey == potentialApiKey);
+                    var brokers = _bService.Find(b => b.ApiKey == potentialApiKey.ToString()).Include(x => x.BrokerRequests);
                     if (brokers == null || !brokers.Any())
                     {
                         return Result<IEnumerable<BrokerRequest>>.Fail("Broker not found for the provided API Key.");
                     }
                     var broker = brokers.FirstOrDefault();
                     #endregion GetBroker
-                    return Result<IEnumerable<BrokerRequest>>.Ok(await _brokerRequestService.FindAsync(b => b.BrokerId == broker.Id));
+                    return Result<IEnumerable<BrokerRequest>>.Ok(broker.BrokerRequests);
                 }
                 return Result<IEnumerable<BrokerRequest>>.Fail("API Key is missing from the request.");
             }
